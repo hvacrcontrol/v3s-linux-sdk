@@ -3,8 +3,8 @@ v3s sdk with uboot, linux, and rootfs
 
 ---
 - ## toolschain
-
 export PATH="$PATH:/sdk_path/tools/external-toolchain/bin/"
+sudo apt-get install lib32z1-dev python2.7
 
 - ## build u-boot
 

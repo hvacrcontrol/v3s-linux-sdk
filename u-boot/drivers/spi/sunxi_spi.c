@@ -18,7 +18,7 @@
 #include <asm/arch/clock.h>
 #include <asm/arch/spi.h>
 
-#define SUNXI_SPI_MAX_RATE (24 * 1000 * 1000)
+#define SUNXI_SPI_MAX_RATE (12 * 1000 * 1000)
 #define SUNXI_SPI_MIN_RATE (3 * 1000)
 
 struct sunxi_spi_platdata {

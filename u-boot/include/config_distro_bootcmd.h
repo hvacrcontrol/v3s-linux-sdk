@@ -326,91 +326,10 @@
 	BOOTENV_SHARED_IDE \
 	BOOTENV_SHARED_UBIFS \
 	BOOTENV_SHARED_EFI \
-	"boot_prefixes=/ /boot/\0" \
-	"boot_scripts=boot.scr.uimg boot.scr\0" \
-	"boot_script_dhcp=boot.scr.uimg\0" \
-	BOOTENV_BOOT_TARGETS \
-	\
-	"boot_extlinux="                                                  \
-		"sysboot ${devtype} ${devnum}:${distro_bootpart} any "    \
-			"${scriptaddr} ${prefix}extlinux/extlinux.conf\0" \
-	\
-	"scan_dev_for_extlinux="                                          \
-		"if test -e ${devtype} "                                  \
-				"${devnum}:${distro_bootpart} "           \
-				"${prefix}extlinux/extlinux.conf; then "  \
-			"echo Found ${prefix}extlinux/extlinux.conf; "    \
-			"run boot_extlinux; "                             \
-			"echo SCRIPT FAILED: continuing...; "             \
-		"fi\0"                                                    \
-	\
-	"boot_a_script="                                                  \
-		"load ${devtype} ${devnum}:${distro_bootpart} "           \
-			"${scriptaddr} ${prefix}${script}; "              \
-		"source ${scriptaddr}\0"                                  \
-	\
-	"scan_dev_for_scripts="                                           \
-		"for script in ${boot_scripts}; do "                      \
-			"if test -e ${devtype} "                          \
-					"${devnum}:${distro_bootpart} "   \
-					"${prefix}${script}; then "       \
-				"echo Found U-Boot script "               \
-					"${prefix}${script}; "            \
-				"run boot_a_script; "                     \
-				"echo SCRIPT FAILED: continuing...; "     \
-			"fi; "                                            \
-		"done\0"                                                  \
-	\
-	"scan_dev_for_boot="                                              \
-		"echo Scanning ${devtype} "                               \
-				"${devnum}:${distro_bootpart}...; "       \
-		"for prefix in ${boot_prefixes}; do "                     \
-			"run scan_dev_for_extlinux; "                     \
-			"run scan_dev_for_scripts; "                      \
-		"done;"                                                   \
-		SCAN_DEV_FOR_EFI                                          \
-		"\0"                                                      \
-	\
-	"scan_dev_for_boot_part="                                         \
-		"part list ${devtype} ${devnum} -bootable devplist; "     \
-		"env exists devplist || setenv devplist 1; "              \
-		"for distro_bootpart in ${devplist}; do "                 \
-			"if fstype ${devtype} "                           \
-					"${devnum}:${distro_bootpart} "   \
-					"bootfstype; then "               \
-				"run scan_dev_for_boot; "                 \
-			"fi; "                                            \
-		"done\0"                                                  \
-	\
 	BOOT_TARGET_DEVICES(BOOTENV_DEV)                                  \
 	\
-	"distro_bootcmd=" BOOTENV_SET_SCSI_NEED_INIT                      \
-		"for target in ${boot_targets}; do "                      \
-			"run bootcmd_${target}; "                         \
-		"done\0"						\
-	\
-	"upboot="	\
-		"load mmc 0:1 0x41000000 u-boot-sunxi-with-spl.bin;"		\
-		"sf probe 0;sf erase 0 0x80000;sf write 0x41000000 0 0x80000"	\
-	"\0"	\
-	\
-	"upconfig="	\
-		"load mmc 0:1 0x41000000 script.bin;"		\
-		"sf probe 0;sf erase 0x80000 0x80000;sf write 0x41000000 0x80000 0x80000"	\
-	"\0"	\
-	\
-	"upkernel="	\
-		"load mmc 0:1 0x41000000 uImage;"		\
-		"sf probe 0;sf erase 0x100000 0x300000;sf write 0x41000000 0x100000 0x300000"	\
-	"\0"	\
-	\
-	"uprootfs="	\
-		"load mmc 0:1 0x41000000 rootfs.jffs2;"		\
-		"sf probe 0;sf erase 0x400000 0xC00000"	\
-	"\0"	\
-	\
 	"bootargs="	\
-		"console=ttyS0,115200 root=/dev/mtdblock3 rootfstype=jffs2 rw"	\
+		"console=ttyS0,115200 rootfstype=squashfs,jffs2"	\
 	"\0"	\
 	\
 	"bootm_boot_mode="	\
@@ -419,16 +338,13 @@
 	\
 	"machid=1029"	\
 	"\0"	\
-		
 
 #ifndef CONFIG_BOOTCOMMAND
 /* #define CONFIG_BOOTCOMMAND "run distro_bootcmd" */
 #define CONFIG_BOOTCOMMAND \
-	"echo copy sys_config from spi flash to ram...;" \
-	"sf probe 0;sf read 0x41d00000 0x80000 0x80000;" \
-	"echo copy kernel from spi flash to ram;" \
-	"sf read 0x41000000 0x100000 0x300000;" \
-	"bootm 0x41000000" 
+	"sf probe 0;sf read 0x41d00000 0x60000 0x10000;" \
+	"sf read 0x41000000 0x70000 0x300000;" \
+	"bootm 0x41000000 - 0x41d00000;" 
 #endif
 
 #endif  /* _CONFIG_CMD_DISTRO_BOOTCMD_H */
